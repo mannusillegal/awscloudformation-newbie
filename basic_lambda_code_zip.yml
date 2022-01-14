@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  EnvName:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+
+  LambdaRunTime:
+    Type: String
+    Default: "python3.9"
+    AllowedValues:
+      - python3.6
+      - python3.8
+      - nodejs14.x
+      - dotnetcore1.0
+      - dotnetcore2.0
+      - dotnetcore2.1
+      - dotnetcore3.1
+      - go1.x
+      - java11
+      - java8
+      - java8.al2
+      - nodejs
+      - nodejs10.x
+      - nodejs12.x
+      - nodejs14.x
+      - nodejs4.3
+      - nodejs4.3-edge
+      - nodejs6.10
+      - nodejs8.10
+      - provided
+      - provided.al2
+      - python2.7
+      - python3.6
+      - python3.7
+      - python3.8
+      - python3.9
+      - ruby2.5
+      - ruby2.7
+    Description: "Choose the language to use to write your function. Note that the console code editor supports only Node.js, Python, and Ruby."
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+Resources:
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      Environment:
+        Variables:
+          ENV:
+            Fn::Sub: ${EnvName}
+          TZ: UTC
+      FunctionName: !Join ["-", [!Ref LambdaName, app]]
+      Handler: index.handler
+      Role: arn:aws:iam::accountid:role/lambdaname
+      Code:
+        ZipFile: |
+          import json
+
+          def lambda_handler(event, context):
+              # TODO implement
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('Hello from Lambda!')
+              }
+
+      Runtime: !Ref LambdaRunTime
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "suraj" },
+        ]
