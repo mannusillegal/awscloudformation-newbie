@@ -1,25 +1,24 @@
 import json
 import boto3
-import json
 from botocore.exceptions import ClientError
 
 
 def lambda_handler(event, context):
 
-    print("Event --", event['body'])
-    event_body = json.loads(event['body'])
-    print("type of event body::", type(event_body))
+    # print("Event --", event['body'])
+    # event_body = json.loads(event['body'])
+    # print("type of event body::", type(event_body))
     # This address must be verified with Amazon SES.
-    SENDER = event_body['from_name']+' <'+event_body['from_address']+'>'
+    SENDER = event['from_name']+' <'+event['from_address']+'>'
 
     # If your account is still in the sandbox, this address must be verified.
-    RECIPIENT = event_body['to_address']
+    RECIPIENT = event['to_address']
 
     # the AWS Region you're using for Amazon SES.
     AWS_REGION = "us-east-1"
 
     # The subject line for the email.
-    SUBJECT = event_body["email_subject"]
+    SUBJECT = event["email_subject"]
 
     # The email body for recipients with non-HTML email clients.
     BODY_TEXT = ("Amazon SES Test (Python)\r\n"
