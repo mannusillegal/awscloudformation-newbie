@@ -38,5 +38,5 @@ jobs:
           ECR_REPOSITORY: mlproject
           IMAGE_TAG:  2.0
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY/myname:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY/myname:$IMAGE_TAG
