@@ -16,6 +16,11 @@ Parameters:
     Default: "128"
     Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
 
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
   EcrImageUri:
     Description: ECR image URI
     Type: String
@@ -33,8 +38,7 @@ Resources:
       FunctionName: !Join ["-", [!Ref LambdaName, app]]
       PackageType: Image
       Role: arn:aws:iam::accountid:role/lambdarolename
-      #Timeout cannot be parameterize
-      Timeout: 300
+      Timeout: !Ref LambdaTimeout
       Code:
         ImageUri: !Ref "EcrImageUri"
       Architectures:
