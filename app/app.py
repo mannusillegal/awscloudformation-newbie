@@ -3,7 +3,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 
-def lambda_handler(event, context):
+def handler(event, context):
 
     # print("Event --", event['body'])
     # event_body = json.loads(event['body'])
