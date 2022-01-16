@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  BucketNameParameter:
+    Type: String
+    Description: "Specify the bucket name"
+
+  Environment:
+    Type: String
+    Description: "Select an environment"
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+
+  LambdaName:
+    Description: "Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  EnvName:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
+  EcrImageUri:
+    Description: ECR image URI
+    Type: String
+
+Mappings:
+  EnvironmentToBucketSuffix:
+    Dev:
+      Suffix: "project-appname-dev"
+    Test:
+      Suffix: "project-appname-test"
+    Prod:
+      Suffix: "project-appname-prod"
+
+Resources:
+  s3bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        !Join [
+          "-",
+          [
+            !Ref BucketNameParameter,
+            !FindInMap [EnvironmentToBucketSuffix, !Ref Environment, Suffix],
+          ],
+        ]
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "suraj" },
+        ]
+
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      Environment:
+        Variables:
+          ENV:
+            Fn::Sub: ${EnvName}
+          TZ: UTC
+      FunctionName:
+        !Join [
+          "-",
+          [
+            !Ref LambdaName,
+            !FindInMap [EnvironmentToBucketSuffix, !Ref Environment, Suffix],
+          ],
+        ]
+      PackageType: Image
+      Role: arn:aws:iam::Accountid:role/rolename
+      Timeout: !Ref LambdaTimeout
+      Code:
+        ImageUri: !Ref "EcrImageUri"
+      Architectures:
+        - x86_64
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "suraj" },
+        ]
+
+Outputs:
+  BucketURL:
+    Value: !Join ["", ["https://", !GetAtt s3bucket.DomainName]]
+    Export:
+      Name: !Join ["", [!Ref "AWS::StackName", "BucketURL"]]
+
+  BucketARN:
+    Value: !GetAtt s3bucket.Arn
+    Export:
+      Name: !Join ["", [!Ref "AWS::StackName", "BucketARN"]]
