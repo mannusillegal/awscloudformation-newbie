@@ -1,6 +1,6 @@
-## awscloudformation-newbie
+## AWS cloudformation
 
-This project is for self learning. I have created basic cloudformation templates from Scratch.
+## This project is for self learning. I have created basic cloudformation templates from Scratch.
 
 ## Templates
 1. basic.yml : Template is used to create S3 bucket with desired parameters
