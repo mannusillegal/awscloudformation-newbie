@@ -1,4 +1,4 @@
-## awscloudformation-newbie
+## AWS cloudformation
 
 ## This project is for self learning. I have created basic cloudformation templates from Scratch.
 
