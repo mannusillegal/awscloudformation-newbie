@@ -1,0 +1,223 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  BucketName:
+    Type: String
+
+  Environment:
+    Type: String
+    Description: "Select an environment"
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  EnvName:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+
+  LambdaRunTime:
+    Type: String
+    Default: "python3.9"
+    AllowedValues:
+      - python3.6
+      - python3.8
+      - nodejs14.x
+      - dotnetcore1.0
+      - dotnetcore2.0
+      - dotnetcore2.1
+      - dotnetcore3.1
+      - go1.x
+      - java11
+      - java8
+      - java8.al2
+      - nodejs
+      - nodejs10.x
+      - nodejs12.x
+      - nodejs14.x
+      - nodejs4.3
+      - nodejs4.3-edge
+      - nodejs6.10
+      - nodejs8.10
+      - provided
+      - provided.al2
+      - python2.7
+      - python3.6
+      - python3.7
+      - python3.8
+      - python3.9
+      - ruby2.5
+      - ruby2.7
+    Description: "Choose the language to use to write your function. Note that the console code editor supports only Node.js, Python, and Ruby."
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+Mappings:
+  EnvironmentToBucketSuffix:
+    Dev:
+      Suffix: "app-appname-dev"
+    Test:
+      Suffix: "app-appname-test"
+    Prod:
+      Suffix: "app-appname-prod"
+
+Resources:
+  s3bucket:
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ProcessingLambdaPermission
+    Properties:
+      BucketName: !Ref BucketName
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "suraj" },
+        ]
+
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      NotificationConfiguration:
+        LambdaConfigurations:
+          # we can select the Event types from below
+          # based on the requirement
+          # s3:ObjectCreated:*
+          # s3:ObjectCreated:Put
+          # s3:ObjectCreated:Post
+          # s3:ObjectCreated:Copy
+          - Event: s3:ObjectCreated:Put
+            Function: !GetAtt awslambdafunc.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".html"
+                  - Name: prefix
+                    Value: "app/appname/"
+
+  ProcessingLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref awslambdafunc
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${BucketName}"
+      SourceAccount: !Ref AWS::AccountId
+
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunction"
+      Environment:
+        Variables:
+          ENV:
+            Fn::Sub: ${EnvName}
+          TZ: UTC
+      FunctionName: !Join ["-", [!Ref LambdaName, app]]
+      Handler: index.handler
+      Role: arn:aws:iam::accountid:role/rolename
+      Code:
+        ZipFile: |
+          #refernce - https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example.html
+          import json
+          import urllib.parse
+          import boto3
+
+          print('first Loading function')
+          s3 = boto3.client('s3')
+          def handler(event, context):
+
+            """ handler function logic detect and read the data from the S3.
+                It will also let you know the content type.
+                Content variable will show you the data information
+            """
+            # Get the object from the event and show its content type
+            bucket = event['Records'][0]['s3']['bucket']['name']
+            print(bucket)
+            key = urllib.parse.unquote_plus(
+                event['Records'][0]['s3']['object']['key'], encoding='utf-8')
+            # key = 'input/' + key
+            key = key
+            print(key)
+            try:
+                response = s3.get_object(Bucket=bucket, Key=key)
+                content = response["Body"]
+                print("CONTENT TYPE: " + response['ContentType'])
+                content_data = content.read().decode()
+                print(content_data)
+                return content.read().decode()
+                print(content_data)
+            except Exception as e:
+                print(e)
+                print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+                raise e
+
+      Runtime: !Ref LambdaRunTime
+      Timeout: 300
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "dev" },
+          { "Key": "Owner", "Value": "done" },
+        ]
+
+Outputs:
+  BucketURL:
+    Value: !Join ["", ["https://", !GetAtt s3bucket.DomainName]]
+    Export:
+      Name: !Join ["", [!Ref "AWS::StackName", "BucketURL"]]
+
+  BucketARN:
+    Value: !GetAtt s3bucket.Arn
+    Export:
+      Name: !Join ["", [!Ref "AWS::StackName", "BucketARN"]]
+
+  # AWSLambdaExecutionRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Statement:
+  #         - Action:
+  #             - sts:AssumeRole
+  #           Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - lambda.amazonaws.com
+  #       Version: "2012-10-17"
+  #     Path: "/"
+  #     Policies:
+  #       - PolicyDocument:
+  #           Statement:
+  #             - Action:
+  #                 - logs:CreateLogGroup
+  #                 - logs:CreateLogStream
+  #                 - logs:PutLogEvents
+  #               Effect: Allow
+  #               Resource: arn:aws:logs:*:*:*
+  #           Version: "2012-10-17"
+  #         PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-CW
+  #       - PolicyDocument:
+  #           Statement:
+  #             - Action:
+  #                 - s3:PutObject
+  #                 - s3:DeleteObject
+  #                 - s3:List*
+  #               Effect: Allow
+  #               Resource:
+  #                 - !Sub arn:aws:s3:::${SampleS3Bucket}/*
+  #                 - !Sub arn:aws:s3:::${SampleS3Bucket}
+  #           Version: "2012-10-17"
+  #         PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-S3
+  #     RoleName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambdaExecutionRole

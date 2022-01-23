@@ -8,10 +8,17 @@
 3. basic_lambda_dockerimage.yml : Template is used to create Lambda function with docker image. 
 4. master_lambda_s3.yml : Template used to create stack of s3 and lambda.
 5. basic_s3_multipleLambda_dockerimage.yml : Template used to create s3 bucket and multiple lambda function
+6. trigger_s3_lambda.yml : 
+  a. Template used to create lambda function, s3 bucket , S3 put object trigger. While configuring the trigger, under the `NotificationConfiguration` we can provide suffix and prefix to expand the folder funtionality and file extension. e.g.        
+                        - Name: suffix
+                          Value: ".html"
+                        - Name: prefix
+                          Value: "app/appname/"
+   b. IAM role: We can either provide lambda role directly in the template or we can create role and policies. Role creation code is commented since we are using the predefined role under lamdba function properties.
+        
 
 ## Default branch
-The default branch for this repo has changed to `main`. 
-If you have cloned the previous default branch, please update your local repo to use the `main` branch. 
+The default branch for this repo has changed to `main`
 
 To be continued.......
 
