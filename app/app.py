@@ -21,7 +21,7 @@ def handler(event, context):
         content_data = content.read().decode()
         print(content_data)
         return content.read().decode()
-        print("conent data: ", content_data)
+        print("conent data first :", content_data)
     except Exception as e:
         print(e)
         print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
