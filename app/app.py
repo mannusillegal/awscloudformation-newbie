@@ -2,42 +2,51 @@ import json
 import boto3
 from botocore.exceptions import ClientError
 
+s3 = boto3.client('s3')
+
 
 def handler(event, context):
+    bucket = event['Records'][0]['s3']['bucket']['name']
+    print(bucket)
+    key = urllib.parse.unquote_plus(
+        event['Records'][0]['s3']['object']['key'], encoding='utf-8')
+    # key = 'input/' + key
+    key = key
+    print(key)
+    try:
+        response = s3.get_object(Bucket=bucket, Key=key)
+        content = response["Body"]
+        print("CONTENT TYPE: " + response['ContentType'])
+        content_data = content.read().decode()
+        print(content_data)
+        return content.read().decode()
+        print(content_data)
+    except Exception as e:
+        print(e)
+        print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
+        raise e
 
     # print("Event --", event['body'])
     # event_body = json.loads(event['body'])
     # print("type of event body::", type(event_body))
     # This address must be verified with Amazon SES.
-    SENDER = event['from_name']+' <'+event['from_address']+'>'
+    SENDER = "suraj20709@gail.com"
 
     # If your account is still in the sandbox, this address must be verified.
-    RECIPIENT = event['to_address']
+    RECIPIENT = "suraj20709@gail.com"
 
     # the AWS Region you're using for Amazon SES.
     AWS_REGION = "us-east-1"
 
     # The subject line for the email.
-    SUBJECT = event["email_subject"]
+    SUBJECT = "mysubject"
 
     # The email body for recipients with non-HTML email clients.
     BODY_TEXT = ("Amazon SES Test (Python)\r\n"
-                 "This email was sent with Amazon SES using the "
-                 "AWS SDK for Python (Boto)."
                  )
 
     # The HTML body of the email.
-    BODY_HTML = """<html>
-    <head></head>
-    <body>
-      <h1>Amazon SES Test (SDK for Python)</h1>
-      <p>This email was sent with
-        <a href='https://aws.amazon.com/ses/'>Amazon SES</a> using the
-        <a href='https://aws.amazon.com/sdk-for-python/'>
-          AWS SDK for Python (Boto)</a>.</p>
-    </body>
-    </html>
-                """
+    BODY_HTML = content_data
 
     # The character encoding for the email.
     CHARSET = "UTF-8"
