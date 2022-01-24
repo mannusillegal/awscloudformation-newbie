@@ -30,10 +30,10 @@ def handler(event, context):
     # event_body = json.loads(event['body'])
     # print("type of event body::", type(event_body))
     # This address must be verified with Amazon SES.
-    SENDER = "suraj.singh@mresult.com"
+    SENDER = "something@gmail.com"
 
     # If your account is still in the sandbox, this address must be verified.
-    RECIPIENT = "suraj.singh@mresult.com"
+    RECIPIENT = "something@gmail.com"
 
     # the AWS Region you're using for Amazon SES.
     AWS_REGION = "us-east-1"
