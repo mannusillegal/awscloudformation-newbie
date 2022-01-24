@@ -7,9 +7,10 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
 
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
-    - 'app/**'
+      - ".github/workflows/main.yml"
+      - "app/**"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -36,7 +37,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
-          IMAGE_TAG:  'myapp5.0'
+          IMAGE_TAG: "myapp5.0"
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG app/
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
