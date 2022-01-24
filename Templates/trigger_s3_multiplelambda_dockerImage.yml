@@ -1,0 +1,181 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: "S3 bucket to create."
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9_-]*"
+
+  Environment:
+    Type: String
+    Description: "Select an environment"
+    AllowedValues:
+      - Dev
+      - Test
+      - Prod
+
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  EnvName:
+    Type: String
+    Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+    AllowedPattern: ^.*[^0-9]$
+    ConstraintDescription: Must end with non-numeric character.
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+Resources:
+  s3bucket:
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ProcessingLambdaPermission
+    Properties:
+      BucketName: !Ref BucketName
+
+      Tags:
+        - Key: Primayowner
+          Value: John
+
+      # AccessControl:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            # Event types
+            # s3:ObjectCreated:*
+            # s3:ObjectCreated:Put
+            # s3:ObjectCreated:Post
+            # s3:ObjectCreated:Copy
+            Function: !GetAtt awslambdafunc.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".html"
+                  - Name: prefix
+                    Value: "appa/myappa/"
+
+          - Event: s3:ObjectCreated:Put
+            # Event types
+            # s3:ObjectCreated:*
+            # s3:ObjectCreated:Put
+            # s3:ObjectCreated:Post
+            # s3:ObjectCreated:Copy
+            Function: !GetAtt awslambdafunc2.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".html"
+                  - Name: prefix
+                    Value: "appb/myappb/"
+
+  ProcessingLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref awslambdafunc
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${BucketName}"
+      SourceAccount: !Ref AWS::AccountId
+
+  ProcessingLambdaPermission2:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref awslambdafunc2
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${BucketName}"
+      SourceAccount: !Ref AWS::AccountId
+
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      Environment:
+        Variables:
+          ENV:
+            Fn::Sub: ${EnvName}
+          TZ: UTC
+      FunctionName: !Join ["-", [!Ref LambdaName, app]]
+      Role: !GetAtt AWSLambdaExecutionRole.Arn
+      PackageType: Image
+      Code:
+        ImageUri: AccountId.dkr.ecr.awsregion.amazonaws.com/foldername:image5.0
+      Architectures:
+        - x86_64
+      Timeout: 300
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [{ "Key": "Stage", "Value": "QA" }, { "Key": "Owner", "Value": "John" }]
+
+  awslambdafunc2:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      FunctionName: !Join ["-", [!Ref LambdaName, app2, appname2]]
+      Role: !GetAtt AWSLambdaExecutionRole.Arn
+      PackageType: Image
+      Code:
+        ImageUri: AccountId.dkr.ecr.us-east-1.amazonaws.com/foldername:image5.0
+      Architectures:
+        - x86_64
+      Timeout: 300
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [{ "Key": "Stage", "Value": "QA" }, { "Key": "Owner", "Value": "john" }]
+
+  AWSLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: arn:aws:logs:*:*:*
+            Version: "2012-10-17"
+          PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-CW
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:List*
+                  - ses:*
+                  - s3-object-lambda:*
+                  - ecr:*
+                  - cloudtrail:LookupEvents
+                  - cloudwatch:*
+                  - logs:*
+                  - sns:*
+                Effect: Allow
+                Resource: "*"
+
+            Version: "2012-10-17"
+          PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-S3
+      RoleName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambdaExecutionRole

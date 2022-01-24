@@ -15,7 +15,7 @@
                         - Name: prefix
                           Value: "app/appname/"
    b. IAM role: We can either provide lambda role directly in the template or we can create role and policies. Role creation code is commented since we are using the predefined role under lamdba function properties.
-        
+7. trigger_s3_multiplelambda_dockerImage.yml : Template used to build multiple lambda function, s3, s3 trigger by using dockerimage. In order to use same s3 bucket with multiple lambda function, we need to add `Event` under the same `NotificationConfiguration`
 
 ## Default branch
 The default branch for this repo has changed to `main`
