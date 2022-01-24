@@ -17,10 +17,10 @@ def handler(event, context):
     try:
         response = s3.get_object(Bucket=bucket, Key=key)
         content = response["Body"]
-        print("CONTENT TYPE: " + response['ContentType'])
+        # print("CONTENT TYPE: " + response['ContentType'])
         content_data = content.read().decode()
         print(content_data)
-        return content.read().decode()
+        # return content.read().decode()
         print("conent data first :", content_data)
     except Exception as e:
         print(e)
@@ -31,10 +31,10 @@ def handler(event, context):
     # event_body = json.loads(event['body'])
     # print("type of event body::", type(event_body))
     # This address must be verified with Amazon SES.
-    SENDER = "suraj20709@gail.com"
+    SENDER = "suraj.singh007@hotmail.com"
 
     # If your account is still in the sandbox, this address must be verified.
-    RECIPIENT = "suraj20709@gail.com"
+    RECIPIENT = "suraj.singh007@hotmail.com"
 
     # the AWS Region you're using for Amazon SES.
     AWS_REGION = "us-east-1"
@@ -52,7 +52,7 @@ def handler(event, context):
     # The character encoding for the email.
     CHARSET = "UTF-8"
     # Create SES client
-    ses = boto3.client('ses')
+    ses = boto3.client('ses', region_name=AWS_REGION)
     try:
         # Provide the contents of the email.
         response = ses.send_email(
@@ -79,13 +79,15 @@ def handler(event, context):
             },
             Source=SENDER
         )
+        print("Email sent! Message ID:"),
+        print(response['MessageId'])
     # Display an error if something goes wrong.
     except ClientError as e:
         print(e.response['Error']['Message'])
-    else:
-        print("Email sent! Message ID:"),
-        print(response['MessageId'])
+    # else:
+    #     print("Email sent! Message ID:"),
+    #     print(response['MessageId'])
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Hello from Lambda!')}
+        'body': json.dumps('Hello from Lambda!', response['MessageID'])}
