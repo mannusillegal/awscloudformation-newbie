@@ -7,7 +7,7 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
 
   pull_request:
-    branches: [main]
+    branches: [buildandpush]
     paths:
       - ".github/workflows/main.yml"
       - "app/**"
@@ -37,7 +37,11 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
-          IMAGE_TAG: "myapp5.0"
+          APP_TAG: "myapp5.0"
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG app/
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "build started...."
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-GITHUB_RUN_NUMBER app/
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-$GITHUB_RUN_NUMBER
+          echo "image has been pushed"
+          echo $APP_TAG-$GITHUB_RUN_NUMBER
+          docker rmi $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-$GITHUB_RUN_NUMBER
