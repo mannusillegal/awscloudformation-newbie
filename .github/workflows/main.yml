@@ -39,7 +39,7 @@ jobs:
           APP_TAG: "myapp5.0"
         run: |
           echo "build started...."
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-GITHUB_RUN_NUMBER app/
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-$GITHUB_RUN_NUMBER app/
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$APP_TAG-$GITHUB_RUN_NUMBER
           echo "image has been pushed"
           echo $APP_TAG-$GITHUB_RUN_NUMBER
