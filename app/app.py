@@ -33,7 +33,7 @@ def handler(event, context):
     SENDER = "suraj.singh@mresult.com"
 
     # If your account is still in the sandbox, this address must be verified.
-    RECIPIENT = "something@gmail.com"
+    RECIPIENT = "suraj.singh@mresult.com"
 
     # the AWS Region you're using for Amazon SES.
     AWS_REGION = "us-east-1"
