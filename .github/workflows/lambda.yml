@@ -36,13 +36,16 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
-          fullimage_name: $ECR_REGISTRY/$ECR_REPOSITORY
+          # fullimage_name: $ECR_REGISTRY/$ECR_REPOSITORY
         run: |
-          echo $fullimage_name
-          docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
-          echo $fullimage_name:${GITHUB_RUN_NUMBER}
-          docker push $fullimage_name:${GITHUB_RUN_NUMBER}
-          docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
+          docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}       
+          # echo $fullimage_name
+          # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
+          # echo $fullimage_name:${GITHUB_RUN_NUMBER}
+          # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
+          # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
 
       # - name: Update CloudFormation Stack
       #   id: update-stack
