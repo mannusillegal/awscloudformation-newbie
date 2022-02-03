@@ -15,6 +15,9 @@ on:
       - "app/**"
       - "Templates/basic_lambda_dockerImage.yml"
 
+env:
+  resourceGroup1: ${GITHUB_RUN_NUMBER}
+
 jobs:
   deploy-stack:
     runs-on: ubuntu-latest
@@ -33,6 +36,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push image to Amazon ECR
+        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
@@ -41,7 +45,9 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
-          docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}   
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER" 
+          # docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
+
 
           # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
           # echo $fullimage_name:${GITHUB_RUN_NUMBER}
@@ -51,8 +57,6 @@ jobs:
       - name: Update CloudFormation Stack
         id: update-stack
         uses: badsyntax/github-action-aws-cloudformation@master
-        env:
-          resourceGroup1: ${GITHUB_RUN_NUMBER}
 
         if:
         with:
@@ -61,4 +65,7 @@ jobs:
           # Only apply the changeset on pushes to main/release
           apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
           aws-region: "us-east-1"
-          parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:${{ env.resourceGroup1 }}"
+          parameter-overrides: >-
+            LambdaName  = mylamfortest,
+            EcrImageUri=${{ steps.build-image.outputs.image }}
+          # parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:${ env.resourceGroup1 }"
