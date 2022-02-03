@@ -1,0 +1,65 @@
+name: "deploy"
+
+concurrency:
+  group: prod_deploy
+  cancel-in-progress: false
+
+on:
+  repository_dispatch:
+  pull_request:
+  push:
+    branches:
+      - cloudformation_lambda
+    paths:
+      - ".github/workflows/lambda.yml"
+      - "app/**"
+      - "Templates/basic_lambda_dockerImage.yml"
+
+jobs:
+  deploy-stack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: mlproject
+          fullimage_name: $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+        run: |
+          docker build -t $fullimage_name app/
+          echo $fullimage_name
+          docker push $fullimage_name
+          docker rmi $fullimage_name
+
+      # - name: Update CloudFormation Stack
+      #   id: update-stack
+      #   uses: badsyntax/github-action-aws-cloudformation@master
+      #   if:
+      #   with:
+      #     stack-name: "suraj-cloudformation-stack"
+      #     template: "./Templates/basic_lambda_dockerImage.yml"
+      #     # Only apply the changeset on pushes to main/release
+      #     apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+      #     aws-region: "us-east-1"
+      #     parameters: "LambdaName=mylamfortest&EcrImageUri=https://example.com"
+
+      # - name: Deploy Website
+      #   run: |
+      #     # Now that the stack is created we can deploy our
+      #     # website to the S3 bucket.
+      #     echo "Deploy to S3 Bucket: $S3BucketName"
+      #   env:
+      #     # Use outputs from the CloudFormation Stack
+      #     S3BucketName: ${{ steps.update-stack.outputs.S3BucketName }}
