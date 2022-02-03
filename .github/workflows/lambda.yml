@@ -65,7 +65,7 @@ jobs:
           # Only apply the changeset on pushes to main/release
           apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
           aws-region: "us-east-1"
-          parameter-overrides: >-
-            LambdaName  = mylamfortest,
-            EcrImageUri=${{ steps.build-image.outputs.image }}
-          # parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:${ env.resourceGroup1 }"
+          # parameter-overrides: >-
+          #   LambdaName  = mylamfortest,
+          #   EcrImageUri=${{ steps.build-image.outputs.image }}
+          parameters: "LambdaName=mylamfortest&EcrImageUri=${{ steps.build-image.outputs.image }}"
