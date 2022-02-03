@@ -41,7 +41,7 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
           docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}       
-          # echo $fullimage_name
+          echo $fullimage_name:${GITHUB_RUN_NUMBER} 
           # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
           # echo $fullimage_name:${GITHUB_RUN_NUMBER}
           # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
