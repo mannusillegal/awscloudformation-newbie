@@ -36,35 +36,26 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
-          fullimage_name: ${ECR_REGISTRY}/${ECR_REPOSITORY}
+
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
-          echo $fullimage_name:${GITHUB_RUN_NUMBER}
+
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
           docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}   
 
           # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
           # echo $fullimage_name:${GITHUB_RUN_NUMBER}
           # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
-          # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}s
+          # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
 
-      # - name: Update CloudFormation Stack
-      #   id: update-stack
-      #   uses: badsyntax/github-action-aws-cloudformation@master
-      #   if:
-      #   with:
-      #     stack-name: "suraj-cloudformation-stack"
-      #     template: "./Templates/basic_lambda_dockerImage.yml"
-      #     # Only apply the changeset on pushes to main/release
-      #     apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
-      #     aws-region: "us-east-1"
-      #     parameters: "LambdaName=mylamfortest&EcrImageUri=https://example.com"
-
-      # - name: Deploy Website
-      #   run: |
-      #     # Now that the stack is created we can deploy our
-      #     # website to the S3 bucket.
-      #     echo "Deploy to S3 Bucket: $S3BucketName"
-      #   env:
-      #     # Use outputs from the CloudFormation Stack
-      #     S3BucketName: ${{ steps.update-stack.outputs.S3BucketName }}
+      - name: Update CloudFormation Stack
+        id: update-stack
+        uses: badsyntax/github-action-aws-cloudformation@master
+        if:
+        with:
+          stack-name: "suraj-cloudformation-stack"
+          template: "./Templates/basic_lambda_dockerImage.yml"
+          # Only apply the changeset on pushes to main/release
+          apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+          aws-region: "us-east-1"
+          parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:${GITHUB_RUN_NUMBER}"
