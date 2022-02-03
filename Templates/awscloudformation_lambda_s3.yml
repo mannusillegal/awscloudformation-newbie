@@ -69,7 +69,7 @@ Resources:
             # s3:ObjectCreated:Put
             # s3:ObjectCreated:Post
             # s3:ObjectCreated:Copy
-            Function: !GetAtt awslambdafunc2.Arn
+            Function: !GetAtt awslambdafunc.Arn
             Filter:
               S3Key:
                 Rules:
