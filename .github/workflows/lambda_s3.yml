@@ -1,0 +1,71 @@
+name: "cicdlambdadeploy"
+
+concurrency:
+  group: prod_deploy
+  cancel-in-progress: false
+
+on:
+  repository_dispatch:
+  pull_request:
+  push:
+    branches:
+      - cloudformation_lambda
+    paths:
+      - ".github/workflows/lambda_s3.yml"
+      - "app/**"
+      - "Templates/awscloudformation_lambda_s3.yml"
+
+env:
+  resourceGroup1: ${GITHUB_RUN_NUMBER}
+
+jobs:
+  deploy-stack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: healthy
+
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
+
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER" 
+          # docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
+
+
+          # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
+          # echo $fullimage_name:${GITHUB_RUN_NUMBER}
+          # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
+          # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
+
+      - name: Update CloudFormation Stack
+        id: update-stack
+        uses: badsyntax/github-action-aws-cloudformation@master
+
+        if:
+        with:
+          stack-name: "suraj-cloudformation-stack1"
+          template: "./Templates/awscloudformation_lambda_s3.yml"
+          # Only apply the changeset on pushes to main/release
+          apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+          aws-region: "us-east-1"
+          # parameter-overrides: >-
+          #   LambdaName  = mylamfortest,
+          #   EcrImageUri=${{ steps.build-image.outputs.image }}
+          parameters: "LambdaName=mylamfortest&BucketName=mybuck-dev&EcrImageUri=${{ steps.build-image.outputs.image }}"

@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  BucketName:
+    Type: String
+    Description: "S3 bucket to create."
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9_-]*"
+
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
+  EcrImageUri:
+    Description: ECR image URI
+    Type: String
+
+Resources:
+  s3bucket:
+    Type: AWS::S3::Bucket
+    DependsOn:
+      - ProcessingLambdaPermission
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      Tags:
+        [{ "Key": "Stage", "Value": "QA" }, { "Key": "Owner", "Value": "s3" }]
+
+      # AccessControl:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            # Event types
+            # s3:ObjectCreated:*
+            # s3:ObjectCreated:Put
+            # s3:ObjectCreated:Post
+            # s3:ObjectCreated:Copy
+            Function: !GetAtt awslambdafunc.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".html"
+                  - Name: prefix
+                    Value: "appa/myappa/"
+
+          - Event: s3:ObjectCreated:Put
+            # Event types
+            # s3:ObjectCreated:*
+            # s3:ObjectCreated:Put
+            # s3:ObjectCreated:Post
+            # s3:ObjectCreated:Copy
+            Function: !GetAtt awslambdafunc2.Arn
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: ".html"
+                  - Name: prefix
+                    Value: "appb/myappb/"
+
+  ProcessingLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !Ref awslambdafunc
+      Principal: s3.amazonaws.com
+      SourceArn: !Sub "arn:aws:s3:::${BucketName}"
+      SourceAccount: !Ref AWS::AccountId
+
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      FunctionName: !Ref LambdaName
+      PackageType: Image
+      Role: arn:aws:iam::400496050263:role/lambda-testing
+      Timeout: !Ref LambdaTimeout
+      Code:
+        ImageUri: !Ref "EcrImageUri"
+      Architectures:
+        - x86_64
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "lambda" },
+        ]
