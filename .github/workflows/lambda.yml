@@ -51,6 +51,9 @@ jobs:
       - name: Update CloudFormation Stack
         id: update-stack
         uses: badsyntax/github-action-aws-cloudformation@master
+        env:
+          resourceGroup1: ${GITHUB_RUN_NUMBER}
+
         if:
         with:
           stack-name: "suraj-cloudformation-stack"
@@ -58,4 +61,4 @@ jobs:
           # Only apply the changeset on pushes to main/release
           apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
           aws-region: "us-east-1"
-          parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:$GITHUB_RUN_NUMBER"
+          parameters: "LambdaName=mylamfortest&EcrImageUri=400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:resourceGroup1"
