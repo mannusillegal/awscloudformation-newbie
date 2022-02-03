@@ -30,7 +30,7 @@ def handler(event, context):
     # event_body = json.loads(event['body'])
     # print("type of event body::", type(event_body))
     # This address must be verified with Amazon SES.
-    SENDER = "something@gmail.com"
+    SENDER = "suraj.singh@mresult.com"
 
     # If your account is still in the sandbox, this address must be verified.
     RECIPIENT = "something@gmail.com"
