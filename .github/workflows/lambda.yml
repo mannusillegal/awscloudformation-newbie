@@ -36,7 +36,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: mlproject
-          fullimage_name: $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER
+          fullimage_name: $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
         run: |
           docker build -t $fullimage_name app/
           echo $fullimage_name
