@@ -15,8 +15,8 @@ on:
       - "app/**"
       - "Templates/awscloudformation_lambda_s3.yml"
 
-env:
-  resourceGroup1: ${GITHUB_RUN_NUMBER}
+# env:
+#   resourceGroup1: ${GITHUB_RUN_NUMBER}
 
 jobs:
   deploy-stack:
