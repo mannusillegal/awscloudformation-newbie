@@ -63,20 +63,20 @@ Resources:
                   - Name: prefix
                     Value: "appa/myappa/"
 
-          - Event: s3:ObjectCreated:Put
-            # Event types
-            # s3:ObjectCreated:*
-            # s3:ObjectCreated:Put
-            # s3:ObjectCreated:Post
-            # s3:ObjectCreated:Copy
-            Function: !GetAtt awslambdafunc.Arn
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: ".html"
-                  - Name: prefix
-                    Value: "appb/myappb/"
+          # - Event: s3:ObjectCreated:Put
+          #   # Event types
+          #   # s3:ObjectCreated:*
+          #   # s3:ObjectCreated:Put
+          #   # s3:ObjectCreated:Post
+          #   # s3:ObjectCreated:Copy
+          #   Function: !GetAtt awslambdafunc.Arn
+          #   Filter:
+          #     S3Key:
+          #       Rules:
+          #         - Name: suffix
+          #           Value: ".html"
+          #         - Name: prefix
+          #           Value: "appb/myappb/"
 
   ProcessingLambdaPermission:
     Type: AWS::Lambda::Permission
