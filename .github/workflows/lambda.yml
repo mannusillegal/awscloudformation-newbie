@@ -15,9 +15,6 @@ on:
       - "app/**"
       - "Templates/basic_lambda_dockerImage.yml"
 
-env:
-  resourceGroup1: ${GITHUB_RUN_NUMBER}
-
 jobs:
   deploy-stack:
     runs-on: ubuntu-latest
