@@ -13,7 +13,7 @@ on:
     paths:
       - ".github/workflows/lambda.yml"
       - "app/**"
-      - "Templates/basic_lambda_dockerImage.yml"
+      # - "Templates/basic_lambda_dockerImage.yml"
 
 jobs:
   deploy-stack:
