@@ -69,7 +69,7 @@ jobs:
 
       - uses: badsyntax/github-action-issue-comment@master
         name: Comment on Pull Request
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'push'
         with:
           action: "create-clean"
           template: ".github/pr-comment-template.hbs"
