@@ -61,7 +61,7 @@ Resources:
                   - Name: suffix
                     Value: ".html"
                   - Name: prefix
-                    Value: "appa/myappa/"
+                    Value: "appb/myappb/"
 
           # - Event: s3:ObjectCreated:Put
           #   # Event types
