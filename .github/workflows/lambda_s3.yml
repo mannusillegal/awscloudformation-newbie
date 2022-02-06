@@ -13,7 +13,7 @@ on:
     paths:
       - ".github/workflows/lambda_s3.yml"
       - "app/**"
-      - "Templates/awscloudformation_lambda_s3.yml"
+      # - "Templates/awscloudformation_lambda_s3.yml"
 
 # env:
 #   resourceGroup1: ${GITHUB_RUN_NUMBER}
