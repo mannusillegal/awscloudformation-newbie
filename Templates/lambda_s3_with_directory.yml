@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Working with custom resources and S3
+Parameters:
+  S3BucketName:
+    Type: String
+    Description: "S3 bucket to create."
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9_-]*"
+
+  DirsToCreate:
+    Description: "Comma delimited list of directories to create."
+    Type: CommaDelimitedList
+
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
+  EcrImageUri:
+    Description: ECR image URI
+    Type: String
+
+Resources:
+  SampleS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+
+  S3CustomResource:
+    Type: Custom::S3CustomResource
+    Properties:
+      ServiceToken: !GetAtt awslambdafunc.Arn
+      the_bucket: !Ref SampleS3Bucket
+      dirs_to_create: !Ref DirsToCreate
+
+  awslambdafunc:
+  Type: AWS::Lambda::Function
+  Properties:
+    Description: "LambdaFunciton"
+    FunctionName: !Ref LambdaName # !Join ["-", [!Ref LambdaName, app]]
+    PackageType: Image
+    Role: arn:aws:iam::400496050263:role/lambda-testing
+    Timeout: !Ref LambdaTimeout
+    Code:
+      ImageUri: !Ref "EcrImageUri"
+    Architectures:
+      - x86_64
+    MemorySize: !Ref LambdaMemorySize
+    Tags:
+      [{ "Key": "Stage", "Value": "QA" }, { "Key": "Owner", "Value": "lambda" }]
+  # AWSLambdaExecutionRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     AssumeRolePolicyDocument:
+  #       Statement:
+  #         - Action:
+  #             - sts:AssumeRole
+  #           Effect: Allow
+  #           Principal:
+  #             Service:
+  #               - lambda.amazonaws.com
+  #       Version: "2012-10-17"
+  #     Path: "/"
+  #     Policies:
+  #       - PolicyDocument:
+  #           Statement:
+  #             - Action:
+  #                 - logs:CreateLogGroup
+  #                 - logs:CreateLogStream
+  #                 - logs:PutLogEvents
+  #               Effect: Allow
+  #               Resource: arn:aws:logs:*:*:*
+  #           Version: "2012-10-17"
+  #         PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-CW
+  #       - PolicyDocument:
+  #           Statement:
+  #             - Action:
+  #                 - s3:PutObject
+  #                 - s3:DeleteObject
+  #                 - s3:List*
+  #               Effect: Allow
+  #               Resource:
+  #                 - !Sub arn:aws:s3:::${SampleS3Bucket}/*
+  #                 - !Sub arn:aws:s3:::${SampleS3Bucket}
+  #           Version: "2012-10-17"
+  #         PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambda-S3
+  #     RoleName: !Sub ${AWS::StackName}-${AWS::Region}-AWSLambdaExecutionRole
