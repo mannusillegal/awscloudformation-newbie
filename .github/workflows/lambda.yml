@@ -5,8 +5,8 @@ name: "deploy"
 #   cancel-in-progress: false
 
 on:
-  repository_dispatch:
-  pull_request:
+  # repository_dispatch:
+  # pull_request:
   push:
     branches:
       #[testing]
@@ -79,6 +79,6 @@ jobs:
 
       - name: packaging the lambda to s3
         run: |
-          aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix  appname --output-template-file  template_packaged.yml
+          aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  template.packaged
 
 # aws cloudformation package --template-file /path_to_template/template.json --s3-bucket bucket-name --output-template-file packaged-template.json

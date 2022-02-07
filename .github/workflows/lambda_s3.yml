@@ -5,8 +5,8 @@ concurrency:
   cancel-in-progress: false
 
 on:
-  repository_dispatch:
-  pull_request:
+  # repository_dispatch:
+  # pull_request:
   push:
     branches:
       - cloudformation_lambda
