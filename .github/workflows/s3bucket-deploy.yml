@@ -1,55 +1,54 @@
-name: "s3CD"
+# name: "s3CD"
 
-on:
-  push:
-    branches:
-      - cloudformation_lambda
-    paths:
-      - ".github/workflows/s3bucket-deploy.yml"
-      - "app/**"
-      # - "Templates/awscloudformation_lambda_s3.yml"
+# on:
+#   push:
+#     branches:
+#       - cloudformation_lambda
+#     paths:
+#       - ".github/workflows/s3bucket-deploy.yml"
+#       - "app/**"
+#       # - "Templates/awscloudformation_lambda_s3.yml"
 
-# env:
-#   resourceGroup1: ${GITHUB_RUN_NUMBER}
+# # env:
+# #   resourceGroup1: ${GITHUB_RUN_NUMBER}
 
-jobs:
-  deploy-stack:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+# jobs:
+#   deploy-stack:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v2
 
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+#       - name: Configure AWS Credentials
+#         uses: aws-actions/configure-aws-credentials@v1
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: us-east-1
 
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
+#         run: |
+#           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} app/
 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER" 
-          # docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
+#           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
+#           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER"
+#           # docker rmi  $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER}
 
+#           # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
+#           # echo $fullimage_name:${GITHUB_RUN_NUMBER}
+#           # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
+#           # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
 
-          # docker build -t $fullimage_name:${GITHUB_RUN_NUMBER} app/
-          # echo $fullimage_name:${GITHUB_RUN_NUMBER}
-          # docker push $fullimage_name:${GITHUB_RUN_NUMBER}
-          # docker rmi $fullimage_name:${GITHUB_RUN_NUMBER}
+#       - name: Update CloudFormation Stack
+#         id: update-stack
+#         uses: badsyntax/github-action-aws-cloudformation@master
 
-      - name: Update CloudFormation Stack
-        id: update-stack
-        uses: badsyntax/github-action-aws-cloudformation@master
-
-        if:
-        with:
-          stack-name: "suraj-cloudformation-stack1"
-          template: "./Templates/awscloudformation_lambda_s3.yml"
-          # Only apply the changeset on pushes to main/release
-          apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
-          aws-region: "us-east-1"
-          # parameter-overrides: >-
-          #   LambdaName  = mylamfortest,
-          #   EcrImageUri=${{ steps.build-image.outputs.image }}
-          parameters: "LambdaName=mylamfortest&BucketName=s3buckforme&EcrImageUri=${{ steps.build-image.outputs.image }}"
+#         if:
+#         with:
+#           stack-name: "suraj-cloudformation-stack1"
+#           template: "./Templates/awscloudformation_lambda_s3.yml"
+#           # Only apply the changeset on pushes to main/release
+#           apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+#           aws-region: "us-east-1"
+#           # parameter-overrides: >-
+#           #   LambdaName  = mylamfortest,
+#           #   EcrImageUri=${{ steps.build-image.outputs.image }}
+#           parameters: "LambdaName=mylamfortest&BucketName=s3buckforme&EcrImageUri=${{ steps.build-image.outputs.image }}"
