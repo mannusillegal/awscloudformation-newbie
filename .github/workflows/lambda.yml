@@ -44,6 +44,7 @@ jobs:
 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER"
+          aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  cloudformation/packages/newtemplate.yml
 
       - name: Update CloudFormation Stack
         id: update-stack
@@ -77,8 +78,7 @@ jobs:
           # Use outputs from the CloudFormation Stack
           S3BucketName: ${{ steps.update-stack.outputs.LambdaName }}
 
-      - name: packaging the lambda to s3
-        run: |
-          aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  template.packaged
-
+        # - name: packaging the lambda to s3
+        # run: |
+        #   aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  cloudformation/packages template.yml
 # aws cloudformation package --template-file /path_to_template/template.json --s3-bucket bucket-name --output-template-file packaged-template.json
