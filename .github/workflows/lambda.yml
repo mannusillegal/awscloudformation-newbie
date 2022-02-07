@@ -86,4 +86,4 @@ jobs:
 
       - name: packaging the lambda to s3
         run: |
-          aws cloudformation package --template-file /Templates/basic_lambda_dockerImage.yml --output-template packaged-stack.yaml --s3-bucket mylamfortest
+          aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml --output-template packaged-stack.yaml --s3-bucket mylamfortest
