@@ -1,0 +1,14 @@
+cfn-lambda-stack:
+    Type: AWS::CloudFormation::Stack # required
+      Properties: 
+        Parameters: # conditionally required if the nested stack requires the parameters
+          LambdaName : !Sub ${Environment}-LambdaNameHere
+          LambdaMemorySize: 512
+          LambdaTimeout: 500
+          EcrImageUri: 'URI'
+          Environment: !Sub ${Environment}
+        TemplateURL: 'templates/cfn-lambda.yml <EXAMPLE>' # relative path assuming you are packaging these
+        TimeoutInMinutes: 5 # integer for minutes to wait before failing
+
+# once this and all of the nested guys are done run ->
+# $> aws cloudformation package --template-file impsa-root-stack.yaml --output-template impsa-packaged-stack.yaml --s3-bucket <wherever you want to store>
