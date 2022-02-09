@@ -51,7 +51,7 @@ jobs:
           name: "suraj-cloudformation-stack1"
           template: "./Templates/basic_lambda_dockerImage.yml"
           no-fail-on-empty-changeset: "1"
-          parameter-overrides: "LambdaName=mylamfortest,EcrImageUri=${{ steps.build-image.outputs.image }}"
+          parameter-overrides: "LambdaName=mylamfortest1,EcrImageUri=${{ steps.build-image.outputs.image }}"
 
       # - name: Update CloudFormation Stack
       #   id: update-stack
