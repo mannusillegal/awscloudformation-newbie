@@ -44,6 +44,7 @@ jobs:
 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:${GITHUB_RUN_NUMBER} 
           echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_RUN_NUMBER"
+
       - name: Deploy to AWS CloudFormation
         uses: aws-actions/aws-cloudformation-github-deploy@v1
         with:
@@ -51,39 +52,40 @@ jobs:
           template: "./Templates/basic_lambda_dockerImage.yml"
           no-fail-on-empty-changeset: "1"
           parameter-overrides: "LambdaName=mylamfortest,EcrImageUri=${{ steps.build-image.outputs.image }}"
-            - name: Update CloudFormation Stack
-              id: update-stack
-              uses: badsyntax/github-action-aws-cloudformation@master
-        # if:
-        # with:
-        #   stack-name: "suraj-cloudformation-stack"
-        #   template: "./Templates/basic_lambda_dockerImage.yml"
-        #   # Only apply the changeset on pushes to main/cloudformation_lambda
-        #   apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
-        #   aws-region: "us-east-1"
 
-        #   parameters: "LambdaName=mylamfortest&EcrImageUri=${{ steps.build-image.outputs.image }}"
+      # - name: Update CloudFormation Stack
+      #   id: update-stack
+      # uses: badsyntax/github-action-aws-cloudformation@master
+      # if:
+      # with:
+      #   stack-name: "suraj-cloudformation-stack"
+      #   template: "./Templates/basic_lambda_dockerImage.yml"
+      #   # Only apply the changeset on pushes to main/cloudformation_lambda
+      #   apply-change-set: ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+      #   aws-region: "us-east-1"
 
-        # - uses: badsyntax/github-action-issue-comment@master
-        #   name: Comment on Pull Request
-        #   if: github.event_name == 'pull_request'
-        #   with:
-        #     action: "create-clean"
-        #     template: ".github/pr-comment-template.hbs"
-        #     id: cloudformation
-        #     token: ${{ secrets.GITHUB_TOKEN }}
-        #     issue-number: ${{ github.event.pull_request.number }}
-        #     template-inputs: |
-        #       {
-        #         "changes": ${{ steps.update-stack.outputs.changes }},
-        #         "outputs": ${{ steps.update-stack.outputs.outputs }},
-        #         "applyChangeSet": ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
-        #       }
-        # env:
-          # Use outputs from the CloudFormation Stack
-          # S3BucketName: ${{ steps.update-stack.outputs.LambdaName }}
+      #   parameters: "LambdaName=mylamfortest&EcrImageUri=${{ steps.build-image.outputs.image }}"
 
-        # - name: packaging the lambda to s3
-        # run: |
-        #   aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  cloudformation/packages template.yml
+      # - uses: badsyntax/github-action-issue-comment@master
+      #   name: Comment on Pull Request
+      #   if: github.event_name == 'pull_request'
+      #   with:
+      #     action: "create-clean"
+      #     template: ".github/pr-comment-template.hbs"
+      #     id: cloudformation
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     issue-number: ${{ github.event.pull_request.number }}
+      #     template-inputs: |
+      #       {
+      #         "changes": ${{ steps.update-stack.outputs.changes }},
+      #         "outputs": ${{ steps.update-stack.outputs.outputs }},
+      #         "applyChangeSet": ${{ github.event_name != 'pull_request' && github.event_name != 'repository_dispatch' }}
+      #       }
+      # env:
+      # Use outputs from the CloudFormation Stack
+      # S3BucketName: ${{ steps.update-stack.outputs.LambdaName }}
+
+      # - name: packaging the lambda to s3
+      # run: |
+      #   aws cloudformation package --template-file ./Templates/basic_lambda_dockerImage.yml  --s3-bucket mylamfortest  --s3-prefix cloudformation/packages --output-template-file  cloudformation/packages template.yml
 # aws cloudformation package --template-file /path_to_template/template.json --s3-bucket bucket-name --output-template-file packaged-template.json
