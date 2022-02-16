@@ -56,21 +56,24 @@ def get_secret():
         print(out)
         if 'SecretString' in get_secret_value_response:
             secret = get_secret_value_response['SecretString']
-            output_secret = json.loads(secret)
-            user1 = output_secret["username"]
-            pass1 = output_secret["password"]
-            print(type(output_secret))
-            print(user1)
-            print(pass1)
+            # output_secret = json.loads(secret)
+            # user1 = output_secret["username"]
+            # pass1 = output_secret["password"]
+            # print(type(output_secret))
+            # print(user1)
+            # print(pass1)
             # print(type(secret))
 
         else:
             decoded_binary_secret = base64.b64decode(
                 get_secret_value_response['SecretBinary'])
 
-    return
-
+    return secret
 
 
 out = get_secret()
-
+secret = json.loads(out)
+user1 = secret["username"]
+pass1 = secret["password"]
+print(user1)
+print(pass1)
