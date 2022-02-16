@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+
+  # EnvName:
+  #   Type: String
+  #   Description: Name of an environment. 'dev', 'staging', 'prod' and any name.
+  #   AllowedPattern: ^.*[^0-9]$
+  #   ConstraintDescription: Must end with non-numeric character.
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
+  EcrImageUri:
+    Description: ECR image URI
+    Type: String
+
+Resources:
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      # Environment:
+      #   Variables:
+      #     ENV:
+      #       Fn::Sub: ${EnvName}
+      #     TZ: UTC
+      FunctionName: !Ref LambdaName # !Join ["-", [!Ref LambdaName, app]]
+      PackageType: Image
+      Role: !GetAtt AWSLambdaExecutionRole.Arn
+      # arn:aws:iam::400496050263:role/lambda-testing
+      Timeout: !Ref LambdaTimeout
+      Code:
+        ImageUri: !Ref "EcrImageUri"
+      Architectures:
+        - x86_64
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "lambda" },
+        ]
+  AWSLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-${AWS::Region}-${LambdaName}-LambdaExecutionRole
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: arn:aws:logs:*:*:*
+            Version: "2012-10-17"
+          PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-${LambdaName}-cw
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  # - s3:List*
+                  # - ses:*
+                  # - s3-object-lambda:*
+                  # - ecr:*
+                  # - cloudtrail:LookupEvents
+                  # - cloudwatch:*
+                  # - logs:*
+                  # - sns:*
+                Effect: Allow
+                Resource: "*"
+            Version: "2012-10-17"
+          PolicyName: !Sub ${AWS::StackName}-${AWS::Region}-${LambdaName}-S3
