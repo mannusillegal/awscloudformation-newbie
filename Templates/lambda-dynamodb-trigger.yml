@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  LambdaName:
+    Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
+    Type: String
+    Default: "mylambda-for-testing"
+
+  LambdaMemorySize:
+    Type: String
+    Default: "128"
+    Description: The value can be any multiple of 1 MB.Max= 10240,Min= 128. The default value is 128 MB.
+
+  LambdaTimeout:
+    Type: String
+    Default: 300
+    Description: The amount of time (in seconds) that Lambda allows a function to run before stopping it. The default is 3 seconds. The maximum allowed value is 900 seconds
+
+  # EcrImageUri:
+  #   Description: ECR image URI
+  #   Type: String
+
+Resources:
+  awslambdafunc:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "LambdaFunciton"
+      FunctionName: !Ref LambdaName
+      PackageType: Image
+      Role: !GetAtt AWSLambdaExecutionRole.Arn
+      # arn:aws:iam::400496050263:role/lambda-testing
+      Timeout: 300
+      Code:
+        ImageUri: 400496050263.dkr.ecr.us-east-1.amazonaws.com/mlproject:48 #!Ref "EcrImageUri"
+      Architectures:
+        - x86_64
+      MemorySize: !Ref LambdaMemorySize
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "lambda" },
+        ]
+
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PROVISIONED
+      Tags:
+        [
+          { "Key": "Stage", "Value": "QA" },
+          { "Key": "Owner", "Value": "lambda" },
+        ]
+      AttributeDefinitions: #define the field id
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id #use the id field as primary key
+          KeyType: HASH
+      ProvisionedThroughput: #set the throughput to 1, since this is just a demo
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: "testingwithlambda"
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+  DynamoDBTableStream:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      # The maximum number of DB items to send to Lambda
+      BatchSize: 10 # It can be changed based on the need
+      Enabled: True
+      EventSourceArn: !GetAtt DataTable.StreamArn
+      FunctionName: !GetAtt awslambdafunc.Arn
+      # Always start at the tail of the Stream
+      StartingPosition: LATEST
+
+  AWSLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub test-${AWS::Region}-${LambdaName}-LambdaExecutionRole-dy
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+        Version: "2012-10-17"
+      Path: "/"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: arn:aws:logs:*:*:*
+            Version: "2012-10-17"
+          PolicyName: !Sub test-${AWS::Region}-${LambdaName}-cw
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  # - s3:List*
+                  # - ses:*
+                  # - s3-object-lambda:*
+                  - ecr:*
+                  # - cloudtrail:LookupEvents
+                  - cloudwatch:*
+                  # - logs:*
+                  # - sns:*
+                Effect: Allow
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  # - "dynamodb:*"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:UpdateTable"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:SetAlarmState"
+                  - "cloudwatch:DeleteAlarms"
+                  - dynamodb:DescribeStream
+                  - dynamodb:GetRecords
+                  - dynamodb:GetShardIterator
+                  - dynamodb:ListStreams
+                Resource:
+                  - "*"
+            Version: "2012-10-17"
+          PolicyName: !Sub test-${AWS::Region}-${LambdaName}-S3
+Outputs:
+  TableStreamArn:
+    Value: !GetAtt DataTable.StreamArn
+    Export:
+      Name: StreamArn
