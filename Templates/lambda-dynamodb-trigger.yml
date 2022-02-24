@@ -1,6 +1,35 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
 Parameters:
+  # ReadCapacityUnits:
+  #     Description: Provisioned read throughput
+  #     Type: Number
+  #     Default: '5'
+  #     MinValue: '5'
+  #     MaxValue: '10000'
+  #     ConstraintDescription: must be between 5 and 10000
+  # WriteCapacityUnits:
+  #   Description: Provisioned write throughput
+  #   Type: Number
+  #   Default: '10'
+  #   MinValue: '5'
+  #   MaxValue: '10000'
+  #   ConstraintDescription: must be between 5 and 10000
+  # HashKeyElementName:
+  #   Description: HashType PrimaryKey Name
+  #   Type: String
+  #   AllowedPattern: '[a-zA-Z0-9]*'
+  #   MinLength: '1'
+  #   MaxLength: '2048'
+  #   ConstraintDescription: must contain only alphanumberic characters
+  # HashKeyElementType:
+  #   Description: HashType PrimaryKey Type
+  #   Type: String
+  #   Default: S
+  #   AllowedPattern: '[S|N]'
+  #   MinLength: '1'
+  #   MaxLength: '1'
+  #   ConstraintDescription: must be either S or N
   LambdaName:
     Description: " Enter a name that describes the purpose of your function., up to 64 characters in length"
     Type: String
@@ -50,15 +79,23 @@ Resources:
           { "Key": "Stage", "Value": "QA" },
           { "Key": "Owner", "Value": "lambda" },
         ]
-      AttributeDefinitions: #define the field id
-        - AttributeName: id
-          AttributeType: S
+      AttributeDefinitions:
+        - AttributeName: "ArtistId"
+          AttributeType: "S"
+        - AttributeName: "Concert"
+          AttributeType: "S"
+        # - AttributeName: "songs"
+        #   AttributeType: "S"
       KeySchema:
-        - AttributeName: id #use the id field as primary key
-          KeyType: HASH
+        - AttributeName: "ArtistId"
+          KeyType: "HASH"
+        - AttributeName: "Concert"
+          KeyType: "RANGE"
+        # - AttributeName: "songs"
+        #   KeyType: "RANGE"
       ProvisionedThroughput: #set the throughput to 1, since this is just a demo
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+        ReadCapacityUnits: 5 # !Ref 'ReadCapacityUnits'
+        WriteCapacityUnits: 5 # !Ref 'WriteCapacityUnits'
       TableName: "testingwithlambda"
       StreamSpecification:
         StreamViewType: NEW_IMAGE
