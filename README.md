@@ -20,5 +20,5 @@
 ## Default branch
 The default branch for this repo has changed to `main`
 
-to be continued...
+to be continud...
 
